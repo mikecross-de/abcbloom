@@ -1,0 +1,2498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABCbloom — Speech Therapy Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --mint: #3dba8c;
+    --mint-light: #e3f7ef;
+    --mint-mid: #a8e6cf;
+    --mint-dark: #1e7a58;
+    --violet: #8b72d4;
+    --violet-light: #ede8fb;
+    --peach: #ff8c6b;
+    --peach-light: #fff0ec;
+    --sky: #5bafd6;
+    --sky-light: #e8f5fb;
+    --ink: #1a1a2e;
+    --ink-mid: #4a4a6a;
+    --ink-light: #a0a0c0;
+    --white: #ffffff;
+    --surface: #f8f9ff;
+    --surface2: #f0f2ff;
+    --border: #e4e6f5;
+    --radius: 22px;
+    --radius-sm: 14px;
+    --radius-xs: 10px;
+    --shadow: 0 4px 20px rgba(61,186,140,0.10);
+    --shadow-card: 0 2px 12px rgba(26,26,46,0.06);
+    --font-display: 'DM Serif Display', serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: linear-gradient(160deg, #e8f4ff 0%, #f0eeff 50%, #e8faf3 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+  }
+
+  /* ── TOP BAR ── */
+  .top-bar {
+    width: 100%;
+    max-width: 430px;
+    background: var(--white);
+    border-bottom: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-logo {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .app-logo span { color: var(--mint); font-style: italic; }
+  .role-switcher {
+    display: flex;
+    background: var(--surface2);
+    border-radius: 24px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .role-btn {
+    border: none;
+    background: transparent;
+    width: 34px;
+    height: 34px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    transition: all 0.2s;
+  }
+  .role-btn.active {
+    background: var(--mint);
+  }
+
+  .topbar-add-btn {
+    width: 36px; height: 36px;
+    background: var(--mint);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.12s;
+    flex-shrink: 0;
+  }
+  .topbar-add-btn:active { background: var(--mint-dark); transform: scale(0.93); }
+  .topbar-add-btn svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+  .topbar-settings-btn {
+    width: 34px; height: 34px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .topbar-settings-btn:active { background: var(--surface2); }
+  .topbar-settings-btn svg { width: 20px; height: 20px; stroke: var(--ink-mid); fill: none; stroke-width: 1.8; stroke-linecap: round; }
+  .toggle-wrap { width: 44px; height: 26px; background: var(--border); border-radius: 13px; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+  .toggle-wrap.on { background: var(--mint); }
+  .toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+  .toggle-wrap.on .toggle-knob { transform: translateX(18px); }
+
+  /* ── PHONE SHELL ── */
+  .phone {
+    width: 100%;
+    max-width: 430px;
+    min-height: calc(100vh - 56px);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(139,114,212,0.08);
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    padding-bottom: 80px;
+    animation: fadeIn 0.2s ease;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 430px;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 16px;
+    z-index: 50;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: all 0.15s;
+  }
+  .nav-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nav-icon svg { width: 22px; height: 22px; stroke: var(--ink-light); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.15s; }
+  .nav-label { font-size: 10px; color: var(--ink-light); font-weight: 500; transition: color 0.15s; }
+  .nav-item.active .nav-icon { background: var(--mint-light); border-radius: 12px; }
+  .nav-item.active .nav-icon svg { stroke: var(--mint); }
+  .nav-item.active .nav-label { color: var(--mint); font-weight: 700; }
+
+  /* ── SHARED COMPONENTS ── */
+  .screen-header {
+    padding: 28px 22px 16px;
+  }
+  .screen-title {
+    font-family: var(--font-display);
+    font-size: 38px;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .screen-sub {
+    font-size: 16px;
+    color: var(--ink-mid);
+    margin-top: 6px;
+  }
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    padding: 0 22px;
+    margin-bottom: 12px;
+    margin-top: 8px;
+  }
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 20px;
+    margin: 0 22px 12px;
+    box-shadow: var(--shadow-card);
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .pill-sage { background: var(--mint-light); color: var(--mint-dark); }
+  .pill-lavender { background: var(--violet-light); color: var(--violet); }
+  .pill-warm { background: var(--peach-light); color: #c0490a; }
+  .btn {
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--mint);
+    color: var(--white);
+    padding: 15px 20px;
+    font-size: 17px;
+    font-weight: 600;
+    width: 100%;
+    border-radius: var(--radius);
+    letter-spacing: 0.01em;
+  }
+  .btn-primary:active { background: var(--mint-dark); transform: scale(0.98); }
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--border);
+    color: var(--ink);
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .divider { height: 1px; background: var(--border); margin: 0 20px 16px; }
+
+  /* ── HOME SCREEN ── */
+  .home-hero {
+    background: linear-gradient(135deg, #3dba8c 0%, #2aa87c 60%, #5bafd6 100%);
+    margin: 0 22px 24px;
+    border-radius: var(--radius);
+    padding: 26px 22px 22px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(61,186,140,0.28);
+  }
+  .home-hero::before {
+    content: '✦';
+    position: absolute;
+    top: 12px; right: 20px;
+    font-size: 48px;
+    color: rgba(255,255,255,0.15);
+    line-height: 1;
+  }
+  .home-hero::after {
+    content: '◎';
+    position: absolute;
+    bottom: -10px; right: 60px;
+    font-size: 80px;
+    color: rgba(255,255,255,0.08);
+    line-height: 1;
+  }
+  .hero-greeting {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .hero-name {
+    font-family: var(--font-display);
+    font-size: 38px;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 24px;
+  }
+  .hero-name em { color: rgba(255,255,255,0.85); font-style: italic; }
+  .hero-stats {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-stat {
+    background: rgba(255,255,255,0.18);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    flex: 1;
+    backdrop-filter: blur(4px);
+  }
+  .hero-stat-num {
+    font-family: var(--font-display);
+    font-size: 38px;
+    color: var(--white);
+    line-height: 1;
+  }
+  .hero-stat-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .next-session-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin: 0 22px 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-card);
+  }
+  .session-dot {
+    width: 48px; height: 48px;
+    background: var(--mint-light);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 22px;
+  }
+  .session-dot svg { width: 22px; height: 22px; stroke: var(--mint); fill: none; stroke-width: 1.8; stroke-linecap: round; }
+  .session-info { flex: 1; }
+  .session-title { font-size: 17px; font-weight: 600; color: var(--ink); }
+  .session-time { font-size: 14px; color: var(--mint); margin-top: 3px; font-weight: 500; }
+
+  .word-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 20px 12px;
+    scrollbar-width: none;
+    align-items: flex-end;
+  }
+  .word-scroll::-webkit-scrollbar { display: none; }
+
+  @keyframes bubblePop {
+    0%   { transform: scale(0.4) translateY(12px); opacity: 0; }
+    65%  { transform: scale(1.12) translateY(-3px); opacity: 1; }
+    80%  { transform: scale(0.95) translateY(1px); }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  @keyframes floatBob {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-4px); }
+  }
+
+  .word-bubble {
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    position: relative;
+    animation: bubblePop 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    transition: transform 0.15s;
+  }
+  .word-bubble:active { transform: scale(0.9); }
+  .word-bubble:hover  { animation: floatBob 1.6s ease-in-out infinite; }
+
+  .word-bubble-lg { width: 88px; height: 88px; }
+  .word-bubble-md { width: 76px; height: 76px; }
+  .word-bubble-sm { width: 64px; height: 64px; }
+
+  .word-bubble-emoji { font-size: 22px; line-height: 1; margin-bottom: 1px; }
+  .word-bubble-lg .word-bubble-emoji { font-size: 24px; }
+  .word-bubble-sm .word-bubble-emoji { font-size: 18px; }
+
+  .word-bubble-word {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+    text-align: center;
+  }
+  .word-bubble-lg .word-bubble-word { font-size: 14px; }
+  .word-bubble-sm .word-bubble-word { font-size: 11px; }
+
+  .word-bubble-date {
+    font-size: 9px;
+    font-weight: 500;
+    opacity: 0.65;
+    margin-top: 2px;
+    font-family: var(--font-body);
+  }
+
+  .bubble-new-badge {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 10px; height: 10px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+
+  /* ── ACTIVITY CARDS ── */
+  @keyframes cardSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .activity-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-card);
+    animation: cardSlideIn 0.35s ease both;
+    cursor: pointer;
+    transition: transform 0.12s;
+  }
+  .activity-card:active { transform: scale(0.98); }
+  .activity-icon {
+    width: 42px; height: 42px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .act-word  { background: var(--mint-light); }
+  .act-sign  { background: var(--violet-light); }
+  .act-sound { background: var(--sky-light); }
+  .activity-body { flex: 1; min-width: 0; }
+  .activity-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .activity-type {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 8px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .activity-type.word  { background: var(--mint-light); color: var(--mint-dark); }
+  .activity-type.sign  { background: var(--violet-light); color: var(--violet); }
+  .activity-type.sound { background: var(--sky-light); color: #1a5f7a; }
+  .activity-ctx {
+    font-size: 13px;
+    color: var(--ink-mid);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .activity-meta {
+    font-size: 12px;
+    color: var(--ink-light);
+    font-weight: 500;
+    flex-shrink: 0;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .activity-new-dot {
+    width: 7px; height: 7px;
+    background: var(--mint);
+    border-radius: 50%;
+  }
+
+  /* ── WORD LOG ── */
+  .add-word-card {
+    background: var(--mint-light);
+    border: 2px dashed var(--mint-mid);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 0 22px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .add-word-card:active { transform: scale(0.98); }
+  .add-icon {
+    width: 44px; height: 44px;
+    background: var(--mint);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .add-icon svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+  .add-word-text { font-size: 17px; font-weight: 700; color: var(--mint-dark); }
+  .add-word-sub { font-size: 13px; color: var(--mint); margin-top: 2px; }
+
+  .word-entry {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 16px 18px;
+    margin: 0 22px 10px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .word-entry-dot {
+    width: 42px; height: 42px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .word-entry-word { font-size: 20px; font-weight: 700; color: var(--ink); }
+  .word-entry-context { font-size: 15px; color: var(--ink-mid); margin-top: 4px; line-height: 1.5; }
+  .word-entry-meta { font-size: 13px; color: var(--ink-light); margin-top: 6px; display: flex; gap: 8px; align-items: center; }
+
+  /* ── WORD LOG MODAL ── */
+  .modal-title { font-family: var(--font-display); font-size: 26px; color: var(--ink); margin-bottom: 18px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--ink-mid); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--mint); }
+  .context-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .context-chip {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-mid);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .context-chip.selected { border-color: var(--mint); background: var(--mint-light); color: var(--mint-dark); }
+
+  /* ── WORD BANK ── */
+  .word-bank-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 22px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow-card);
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 38px;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-label { font-size: 14px; color: var(--ink-light); margin-top: 6px; font-weight: 600; }
+  .stat-trend { font-size: 14px; color: var(--mint); margin-top: 4px; font-weight: 700; }
+  .category-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  .cat-bar-bg { flex: 1; background: var(--surface2); border-radius: 6px; height: 8px; overflow: hidden; }
+  .cat-bar { height: 100%; border-radius: 4px; background: var(--mint); transition: width 0.6s ease; }
+  .cat-name { font-size: 15px; font-weight: 500; color: var(--ink); width: 80px; }
+  .cat-count { font-size: 14px; color: var(--ink-light); width: 30px; text-align: right; }
+
+  /* ── SCHEDULE ── */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin-bottom: 16px;
+  }
+  .month-name { font-family: var(--font-display); font-size: 24px; color: var(--ink); }
+  .month-arrow {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .week-strip {
+    display: flex;
+    padding: 0 20px;
+    gap: 6px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .week-strip::-webkit-scrollbar { display: none; }
+  .day-pill {
+    flex-shrink: 0;
+    width: 48px;
+    padding: 8px 0;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .day-pill .day-name { font-size: 10px; color: var(--ink-light); font-weight: 600; text-transform: uppercase; }
+  .day-pill .day-num { font-size: 18px; font-weight: 600; color: var(--ink); margin-top: 2px; }
+  .day-pill.has-session .day-num::after { content: ''; display: block; width: 5px; height: 5px; background: var(--mint); border-radius: 50%; margin: 3px auto 0; }
+  .day-pill.today { background: var(--mint); }
+  .day-pill.today .day-name { color: rgba(255,255,255,0.7); }
+  .day-pill.today .day-num { color: var(--white); }
+  .day-pill.selected { background: var(--mint-light); }
+  .day-pill.selected .day-name { color: var(--mint-dark); }
+  .day-pill.selected .day-num { color: var(--mint-dark); }
+  .day-pill.today.selected { background: var(--mint-light); }
+  .day-pill.today.selected .day-name { color: var(--mint-dark); }
+  .day-pill.today.selected .day-num { color: var(--mint-dark); }
+  .session-block {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 18px;
+    margin: 0 22px 10px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .session-bar { width: 4px; background: var(--mint); border-radius: 4px; align-self: stretch; flex-shrink: 0; }
+  .session-detail { flex: 1; }
+  .session-date-row { font-size: 18px; font-weight: 700; color: var(--ink); }
+  .session-time-row { font-size: 15px; font-weight: 600; color: var(--mint); margin-top: 4px; }
+  .session-name { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .session-therapist { font-size: 14px; color: var(--ink-light); margin-top: 4px; }
+  .session-duration { font-size: 11px; color: var(--ink-light); margin-top: 6px; }
+
+  /* ── MESSAGING ── */
+  .chat-header {
+    display: flex;
+    align-items: center;
+    padding: 18px 22px;
+    gap: 14px;
+    border-bottom: 1.5px solid var(--border);
+    background: var(--white);
+  }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .avatar-sage { background: var(--mint-light); color: var(--mint-dark); }
+  .avatar-lavender { background: var(--violet-light); color: var(--violet); }
+  .chat-name { font-size: 17px; font-weight: 600; color: var(--ink); }
+  .chat-status { font-size: 11px; color: var(--mint); margin-top: 1px; font-weight: 600; }
+  .messages-list {
+    flex: 1;
+    padding: 16px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .msg-row { display: flex; gap: 8px; align-items: flex-end; }
+  .msg-row.sent { flex-direction: row-reverse; justify-content: flex-start; }
+  .msg-row > div { display: flex; flex-direction: column; max-width: 78%; }
+  .msg-row.sent > div { align-items: flex-end; }
+  .msg-bubble {
+    max-width: 100%;
+    padding: 11px 14px 8px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .msg-bubble.received { background: var(--white); border: 1.5px solid var(--border); color: var(--ink); border-bottom-left-radius: 6px; box-shadow: var(--shadow-card); }
+  .msg-bubble.sent { background: var(--mint); color: white; border-bottom-right-radius: 6px; }
+  .msg-time-inline { font-size: 11px; display: block; margin-top: 4px; text-align: right; }
+  .msg-bubble.received .msg-time-inline { color: var(--ink-light); }
+  .msg-bubble.sent .msg-time-inline { color: rgba(255,255,255,0.65); }
+  .msg-time { font-size: 12px; color: var(--ink-light); padding: 2px 4px; }
+  .msg-date-divider { text-align: center; font-size: 13px; color: var(--ink-light); font-weight: 700; margin: 8px 0; }
+  .chat-input-bar {
+    padding: 12px 16px;
+    background: var(--white);
+    border-top: 1.5px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .chat-input {
+    flex: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 22px;
+    padding: 12px 18px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    background: var(--surface2);
+    outline: none;
+    resize: none;
+    max-height: 120px;
+    line-height: 1.5;
+  }
+  .chat-input:focus { border-color: var(--mint); }
+  .send-btn {
+    width: 48px; height: 48px;
+    background: var(--mint);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .send-btn:active { background: var(--mint-dark); }
+  .send-btn svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+  /* ── THERAPIST SPECIFIC ── */
+  .child-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 16px 18px;
+    margin: 0 22px 10px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .child-card:active { transform: scale(0.98); background: var(--mint-light); }
+  .child-avatar {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .child-info { flex: 1; }
+  .child-name { font-size: 19px; font-weight: 700; color: var(--ink); }
+  .child-meta { font-size: 15px; color: var(--ink-mid); margin-top: 3px; }
+  .child-badge { font-size: 11px; }
+  .activity-dot {
+    width: 9px; height: 9px;
+    background: var(--mint);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .activity-dot.inactive { background: var(--border); }
+
+  .notif-item {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 16px 18px;
+    margin: 0 22px 10px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .notif-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .notif-title { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .notif-body { font-size: 14px; color: var(--ink-mid); margin-top: 2px; line-height: 1.4; }
+  .notif-time { font-size: 11px; color: var(--ink-light); margin-top: 4px; }
+  .unread-dot { width: 9px; height: 9px; background: var(--mint); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+
+  /* practice targets */
+  .target-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin: 0 20px 8px;
+  }
+  .target-word { font-size: 20px; font-weight: 700; color: var(--ink); font-family: var(--font-display); }
+  .target-desc { font-size: 13px; color: var(--ink-mid); margin-top: 4px; }
+  .practice-log {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .attempt-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .attempt-dot.success { background: var(--sage-light); border-color: var(--sage); }
+  .attempt-dot.partial { background: #fef3c7; border-color: #f59e0b; }
+  .attempt-dot.empty { background: var(--surface); }
+
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="app-logo">ABC<span>bloom</span></div>
+  <div class="role-switcher">
+    <button class="role-btn active" onclick="switchRole('parent')" title="Parent">👨‍👩‍👧</button>
+    <button class="role-btn" onclick="switchRole('therapist')" title="Therapist">🩺</button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="topbar-settings-btn" id="settings-btn" onclick="openSettings()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+    <button class="topbar-add-btn" id="fab-btn" onclick="openModal()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- PHONE SHELL -->
+<div class="phone" id="app">
+
+  <!-- ════════════ PARENT SCREENS ════════════ -->
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div style="height:20px;"></div>
+    <div class="home-hero">
+      <div class="hero-greeting">Good morning</div>
+      <div class="hero-name">Maya's progress<br><em>is beautiful</em></div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">47</div>
+          <div class="hero-stat-label">Total words</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">8</div>
+          <div class="hero-stat-label">This week</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-label">Next session</div>
+    <div class="next-session-card">
+      <div class="session-dot">📅</div>
+      <div class="session-info">
+        <div class="session-title">Session with Ms. Alexis</div>
+        <div class="session-time">Tomorrow · 10:00 AM · 60 min</div>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 22px;margin-top:20px;margin-bottom:12px;">
+      <div class="section-label" style="margin:0;padding:0;">Recent activity</div>
+      <span style="font-size:15px;font-weight:600;color:var(--mint);cursor:pointer;" onclick="navigate('words', document.querySelector('#nav-parent .nav-item:nth-child(2)'))">See all →</span>
+    </div>
+    <div id="home-activity-list" style="padding:0 22px;display:flex;flex-direction:column;gap:8px;">
+      <div class="activity-card" style="animation-delay:0s;">
+        <div class="activity-icon act-word">🗣️</div>
+        <div class="activity-body">
+          <div class="activity-title">apple <span class="activity-type word">word</span></div>
+          <div class="activity-ctx">Pointed at fruit bowl, said it clearly</div>
+        </div>
+        <div class="activity-meta">today<div class="activity-new-dot"></div></div>
+      </div>
+      <div class="activity-card" style="animation-delay:0.06s;">
+        <div class="activity-icon act-word">🗣️</div>
+        <div class="activity-body">
+          <div class="activity-title">more <span class="activity-type word">word</span></div>
+          <div class="activity-ctx">Reaching for crackers at snack time</div>
+        </div>
+        <div class="activity-meta">today<div class="activity-new-dot"></div></div>
+      </div>
+      <div class="activity-card" style="animation-delay:0.12s;">
+        <div class="activity-icon act-sign">🤟</div>
+        <div class="activity-body">
+          <div class="activity-title">more <span class="activity-type sign">sign</span></div>
+          <div class="activity-ctx">Used the sign independently at dinner</div>
+        </div>
+        <div class="activity-meta">Mar 15</div>
+      </div>
+      <div class="activity-card" style="animation-delay:0.18s;">
+        <div class="activity-icon act-sound">🔊</div>
+        <div class="activity-body">
+          <div class="activity-title">/b/ sound <span class="activity-type sound">sound</span></div>
+          <div class="activity-ctx">Repeated "ba-ba" while playing</div>
+        </div>
+        <div class="activity-meta">Mar 14</div>
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+
+  </div>
+
+  <!-- WORD LOG -->
+  <div class="screen" id="screen-words">
+    <div class="screen-header">
+      <div class="screen-title">Activity Log</div>
+      <div class="screen-sub">Words, sounds, and signs — all in one place</div>
+    </div>
+
+    <div class="add-word-card" onclick="openModal()">
+      <div class="add-icon">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
+      <div>
+        <div class="add-word-text">Log new activity</div>
+        <div class="add-word-sub">Tap to record a word, sound, or sign</div>
+      </div>
+    </div>
+
+    <div class="section-label">Today — March 17 🌟</div>
+
+    <div class="word-entry">
+      <div class="word-entry-dot" style="background:var(--mint-light);">🗣️</div>
+      <div>
+        <div class="word-entry-word">apple</div>
+        <div class="word-entry-context">"She pointed at the fruit bowl and said it clearly"</div>
+        <div class="word-entry-meta">
+          <span class="activity-type word">word</span>
+          <span>9:34 AM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="word-entry">
+      <div class="word-entry-dot" style="background:var(--mint-light);">🗣️</div>
+      <div>
+        <div class="word-entry-word">more</div>
+        <div class="word-entry-context">"During snack time, reaching for crackers"</div>
+        <div class="word-entry-meta">
+          <span class="activity-type word">word</span>
+          <span>11:10 AM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:8px;">Yesterday — March 16</div>
+
+    <div class="word-entry">
+      <div class="word-entry-dot" style="background:var(--mint-light);">🗣️</div>
+      <div>
+        <div class="word-entry-word">doggie</div>
+        <div class="word-entry-context">"Saw neighbor's dog on walk, very excited"</div>
+        <div class="word-entry-meta">
+          <span class="activity-type word">word</span>
+          <span>4:22 PM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="word-entry">
+      <div class="word-entry-dot" style="background:var(--violet-light);">🤟</div>
+      <div>
+        <div class="word-entry-word">up</div>
+        <div class="word-entry-context">"Arms raised, wanting to be picked up"</div>
+        <div class="word-entry-meta">
+          <span class="activity-type sign">sign</span>
+          <span>6:45 PM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:8px;">March 15</div>
+
+    <div class="word-entry">
+      <div class="word-entry-dot" style="background:var(--sky-light);">🔊</div>
+      <div>
+        <div class="word-entry-word">nana</div>
+        <div class="word-entry-context">"Pointing at banana, approximation of word"</div>
+        <div class="word-entry-meta">
+          <span class="activity-type sound">sound</span>
+          <span>8:15 AM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORD BANK -->
+  <div class="screen" id="screen-bank">
+    <div class="screen-header">
+      <div class="screen-title">Growth Library</div>
+      <div class="screen-sub">Maya's growing collection</div>
+    </div>
+
+    <div class="word-bank-stats">
+      <div class="stat-card">
+        <div class="stat-num">47</div>
+        <div class="stat-label">Total entries</div>
+        <div class="stat-trend">↑ 8 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">19</div>
+        <div class="stat-label">This month</div>
+        <div class="stat-trend">↑ 4 vs last month</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;padding:20px 16px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="font-size:16px;font-weight:700;color:var(--ink);">Growth over time</div>
+        <div style="display:flex;gap:0;background:var(--surface);border-radius:8px;padding:2px;" id="chart-range-btns">
+          <button onclick="setRange('4w',this)" style="font-size:13px;font-weight:700;padding:5px 12px;border:none;border-radius:6px;cursor:pointer;background:var(--mint);color:white;font-family:var(--font-body);">4W</button>
+          <button onclick="setRange('3m',this)" style="font-size:13px;font-weight:700;padding:5px 12px;border:none;border-radius:6px;cursor:pointer;background:transparent;color:var(--ink-light);font-family:var(--font-body);">3M</button>
+          <button onclick="setRange('all',this)" style="font-size:13px;font-weight:700;padding:5px 12px;border:none;border-radius:6px;cursor:pointer;background:transparent;color:var(--ink-light);font-family:var(--font-body);">All</button>
+        </div>
+      </div>
+      <canvas id="growth-chart" style="width:100%;height:200px;display:block;"></canvas>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;" id="chart-labels"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:16px;">By type</div>
+      <div class="category-row">
+        <div style="display:flex;align-items:center;gap:8px;width:90px;">
+          <span style="font-size:18px;">🗣️</span>
+          <div class="cat-name" style="width:auto;">Words</div>
+        </div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:75%;background:var(--mint)"></div></div>
+        <div class="cat-count">31</div>
+      </div>
+      <div class="category-row">
+        <div style="display:flex;align-items:center;gap:8px;width:90px;">
+          <span style="font-size:18px;">🤟</span>
+          <div class="cat-name" style="width:auto;">Signs</div>
+        </div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:38%;background:var(--violet)"></div></div>
+        <div class="cat-count">10</div>
+      </div>
+      <div class="category-row">
+        <div style="display:flex;align-items:center;gap:8px;width:90px;">
+          <span style="font-size:18px;">🔊</span>
+          <div class="cat-name" style="width:auto;">Sounds</div>
+        </div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:23%;background:var(--sky)"></div></div>
+        <div class="cat-count">6</div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="screen" id="screen-schedule">
+    <div class="screen-header">
+      <div class="screen-title">Schedule</div>
+    </div>
+
+    <div class="month-nav">
+      <button class="month-arrow">←</button>
+      <div class="month-name">March 2026</div>
+      <button class="month-arrow">→</button>
+    </div>
+
+    <div class="week-strip">
+      <div class="day-pill" onclick="selectDay(this)">
+        <div class="day-name">Mon</div>
+        <div class="day-num">11</div>
+      </div>
+      <div class="day-pill has-session" onclick="selectDay(this)">
+        <div class="day-name">Tue</div>
+        <div class="day-num">12</div>
+      </div>
+      <div class="day-pill" onclick="selectDay(this)">
+        <div class="day-name">Wed</div>
+        <div class="day-num">13</div>
+      </div>
+      <div class="day-pill" onclick="selectDay(this)">
+        <div class="day-name">Thu</div>
+        <div class="day-num">14</div>
+      </div>
+      <div class="day-pill" onclick="selectDay(this)">
+        <div class="day-name">Fri</div>
+        <div class="day-num">15</div>
+      </div>
+      <div class="day-pill" onclick="selectDay(this)">
+        <div class="day-name">Sat</div>
+        <div class="day-num">16</div>
+      </div>
+      <div class="day-pill today selected" onclick="selectDay(this)">
+        <div class="day-name">Sun</div>
+        <div class="day-num">17</div>
+      </div>
+      <div class="day-pill has-session" onclick="selectDay(this)">
+        <div class="day-name">Mon</div>
+        <div class="day-num">18</div>
+      </div>
+      <div class="day-pill" onclick="selectDay(this)">
+        <div class="day-name">Tue</div>
+        <div class="day-num">19</div>
+      </div>
+      <div class="day-pill has-session" onclick="selectDay(this)">
+        <div class="day-name">Wed</div>
+        <div class="day-num">20</div>
+      </div>
+    </div>
+
+    <div class="section-label">Today</div>
+    <div style="padding:0 22px;margin-bottom:12px;">
+      <div style="background:var(--surface2);border-radius:var(--radius);border:1.5px solid var(--border);padding:16px;text-align:center;">
+        <div style="font-size:16px;font-weight:600;color:var(--ink-mid);">No sessions today</div>
+        <div style="font-size:14px;color:var(--mint);margin-top:4px;font-weight:600;">Next: Monday Mar 18 · 10:00 AM</div>
+      </div>
+    </div>
+
+    <div class="section-label">Upcoming sessions</div>
+
+    <div class="session-block" id="session-mar18">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-date-row">Monday, Mar 18</div>
+        <div class="session-time-row">10:00 AM · 60 min</div>
+        <div class="session-therapist">Ms. Alexis</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn btn-outline" id="session-mar18-confirm" style="font-size:12px;padding:6px 14px;color:var(--mint-dark);border-color:var(--mint-mid);border-radius:var(--radius-sm);font-weight:600;" onclick="confirmSession('session-mar18','Monday, Mar 18')">Confirm</button>
+<button class="btn btn-outline" id="session-mar18-cancel" style="font-size:12px;padding:6px 14px;color:#e05555;border-color:#f5c5c5;border-radius:var(--radius-sm);font-weight:600;" onclick="cancelSession('session-mar18','Monday, Mar 18')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-block" id="session-mar20">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-date-row">Wednesday, Mar 20</div>
+        <div class="session-time-row">2:30 PM · 60 min</div>
+        <div class="session-therapist">Ms. Alexis</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <button class="btn btn-outline" id="session-mar20-confirm" style="font-size:12px;padding:6px 14px;color:var(--mint-dark);border-color:var(--mint-mid);border-radius:var(--radius-sm);font-weight:600;" onclick="confirmSession('session-mar20','Wednesday, Mar 20')">Confirm</button>
+<button class="btn btn-outline" id="session-mar20-cancel" style="font-size:12px;padding:6px 14px;color:#e05555;border-color:#f5c5c5;border-radius:var(--radius-sm);font-weight:600;" onclick="cancelSession('session-mar20','Wednesday, Mar 20')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-block" style="opacity:0.55;">
+      <div class="session-bar" style="background:var(--border);"></div>
+      <div class="session-detail">
+        <div class="session-date-row" style="color:var(--ink-mid);">Monday, Mar 25</div>
+        <div class="session-time-row" style="color:var(--ink-light);">10:00 AM · 60 min</div>
+        <div class="session-therapist" style="display:flex;align-items:center;gap:6px;">Ms. Alexis <span class="pill pill-warm" style="font-size:10px;">Tentative</span></div>
+      </div>
+    </div>
+
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="screen" id="screen-messages" style="padding-bottom:0;height:calc(100vh - 144px);max-height:calc(100vh - 144px);overflow:hidden;">
+    <div class="chat-header">
+      <div class="avatar avatar-lavender">A</div>
+      <div>
+        <div class="chat-name">Ms. Alexis</div>
+        <div class="chat-status">● Active today</div>
+      </div>
+    </div>
+
+    <div class="messages-list" id="messages-list">
+      <div class="msg-date-divider">Thursday, Mar 14</div>
+
+      <div class="msg-row">
+        <div class="avatar avatar-lavender" style="width:28px;height:28px;font-size:11px;border-radius:50%;">A</div>
+        <div>
+          <div class="msg-bubble received">Hi! Just a heads up — Maya did really well with the /b/ sound today. She's making great progress 🌟<span class="msg-time-inline">2:15 PM</span></div>
+        </div>
+      </div>
+
+      <div class="msg-row sent">
+        <div>
+          <div class="msg-bubble sent">That's so great to hear! She was saying "ball" a lot at home too 😊<span class="msg-time-inline">2:32 PM</span></div>
+        </div>
+      </div>
+
+      <div class="msg-row">
+        <div class="avatar avatar-lavender" style="width:28px;height:28px;font-size:11px;border-radius:50%;">A</div>
+        <div>
+          <div class="msg-bubble received">Perfect! Keep encouraging that. For this week, let's focus on "banana" — it has the same /b/ sound. I've added it as a practice target.<span class="msg-time-inline">2:40 PM</span></div>
+        </div>
+      </div>
+
+      <div class="msg-date-divider">Today, Mar 17</div>
+
+      <div class="msg-row sent">
+        <div>
+          <div class="msg-bubble sent">She just said "apple" completely unprompted at breakfast! Logged it in the activity log 🍎<span class="msg-time-inline">9:35 AM</span></div>
+        </div>
+      </div>
+
+      <div class="msg-row">
+        <div class="avatar avatar-lavender" style="width:28px;height:28px;font-size:11px;border-radius:50%;">A</div>
+        <div>
+          <div class="msg-bubble received">Amazing!! Spontaneous labeling is huge. See you tomorrow at 10am — can't wait to work on this with her 🎉<span class="msg-time-inline">10:02 AM</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-bar">
+      <textarea class="chat-input" id="msg-input" rows="1" placeholder="Type a message..."></textarea>
+      <button class="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════ THERAPIST SCREENS ════════════ -->
+
+  <!-- THERAPIST HOME -->
+  <div class="screen" id="screen-t-home">
+    <div style="height:20px;"></div>
+    <div class="home-hero" style="background:linear-gradient(135deg,#8b72d4 0%,#6e5ab8 60%,#5bafd6 100%);box-shadow:0 8px 32px rgba(139,114,212,0.28);">
+      <div class="hero-greeting">Good morning</div>
+      <div class="hero-name">Ms. Alexis'<br><em>dashboard</em></div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">6</div>
+          <div class="hero-stat-label">Caseload</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">6</div>
+          <div class="hero-stat-label">Sessions today</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="height:4px;"></div>
+    <div class="section-label">Today's sessions</div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Maya Johnson</div>
+        <div class="session-therapist">Today, Mar 17 · 10:00 AM</div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Sofia Park</div>
+        <div class="session-therapist">Today, Mar 17 · 11:30 AM</div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Noah Williams</div>
+        <div class="session-therapist">Today, Mar 17 · 1:00 PM</div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Emma Chen</div>
+        <div class="session-therapist">Today, Mar 17 · 2:30 PM</div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Oliver Kim</div>
+        <div class="session-therapist">Today, Mar 17 · 4:00 PM</div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:16px;">Completed today</div>
+
+    <div class="session-block" style="opacity:0.45;">
+      <div class="session-bar" style="background:var(--border);"></div>
+      <div class="session-detail">
+        <div class="session-date-row" style="color:var(--ink-mid);">Today, Mar 17</div>
+        <div class="session-time-row" style="color:var(--ink-light);">9:00 AM</div>
+        <div class="session-therapist">Liam Torres <span class="pill pill-sage" style="font-size:10px;">Done ✓</span></div>
+      </div>
+    </div>
+
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- THERAPIST CHILDREN -->
+  <div class="screen" id="screen-t-children">
+    <div class="screen-header">
+      <div class="screen-title">My Caseload</div>
+      <div class="screen-sub">6 active clients</div>
+    </div>
+
+    <div class="section-label">Active clients</div>
+
+    <div class="child-card" onclick="openChildLibrary('Maya Johnson', 47)" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="child-name">Maya Johnson</div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="activity-dot"></div><span style="font-size:16px;color:var(--ink-light);">→</span></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill pill-sage" style="font-size:13px;">47 entries</span>
+        <span style="font-size:13px;color:var(--ink-light);padding:3px 0;">14 words · 5 signs · 3 sounds</span>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <span style="font-size:13px;color:var(--ink-mid);">Last session <strong style="color:var(--ink);">Mar 12</strong></span>
+        <span style="font-size:13px;color:var(--ink-mid);">Next <strong style="color:var(--mint);">Mar 18</strong></span>
+      </div>
+    </div>
+
+    <div class="child-card" onclick="openChildLibrary('Liam Torres', 31)" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="child-name">Liam Torres</div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="activity-dot"></div><span style="font-size:16px;color:var(--ink-light);">→</span></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill pill-sage" style="font-size:13px;">31 entries</span>
+        <span style="font-size:13px;color:var(--ink-light);padding:3px 0;">10 words · 3 signs · 3 sounds</span>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <span style="font-size:13px;color:var(--ink-mid);">Last session <strong style="color:var(--ink);">Mar 17</strong></span>
+        <span style="font-size:13px;color:var(--ink-mid);">Next <strong style="color:var(--mint);">Mar 24</strong></span>
+      </div>
+    </div>
+
+    <div class="child-card" onclick="openChildLibrary('Sofia Park', 62)" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="child-name">Sofia Park</div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="activity-dot"></div><span style="font-size:16px;color:var(--ink-light);">→</span></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill pill-sage" style="font-size:13px;">62 entries</span>
+        <span style="font-size:13px;color:var(--ink-light);padding:3px 0;">15 words · 7 signs · 4 sounds</span>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <span style="font-size:13px;color:var(--ink-mid);">Last session <strong style="color:var(--ink);">Mar 15</strong></span>
+        <span style="font-size:13px;color:var(--ink-mid);">Next <strong style="color:var(--mint);">Mar 20</strong></span>
+      </div>
+    </div>
+
+    <div class="child-card" onclick="openChildLibrary('Noah Williams', 18)" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="child-name">Noah Williams</div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="activity-dot inactive"></div><span style="font-size:16px;color:var(--ink-light);">→</span></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill pill-sage" style="font-size:13px;">18 entries</span>
+        <span style="font-size:13px;color:var(--ink-light);padding:3px 0;">6 words · 2 signs · 2 sounds</span>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <span style="font-size:13px;color:var(--ink-mid);">Last session <strong style="color:var(--ink);">Mar 10</strong></span>
+        <span style="font-size:13px;color:var(--ink-mid);">Next <strong style="color:var(--mint);">Mar 19</strong></span>
+      </div>
+    </div>
+
+    <div class="child-card" onclick="openChildLibrary('Emma Chen', 55)" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="child-name">Emma Chen</div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="activity-dot"></div><span style="font-size:16px;color:var(--ink-light);">→</span></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill pill-sage" style="font-size:13px;">55 entries</span>
+        <span style="font-size:13px;color:var(--ink-light);padding:3px 0;">12 words · 6 signs · 3 sounds</span>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <span style="font-size:13px;color:var(--ink-mid);">Last session <strong style="color:var(--ink);">Mar 16</strong></span>
+        <span style="font-size:13px;color:var(--ink-mid);">Next <strong style="color:var(--mint);">Mar 21</strong></span>
+      </div>
+    </div>
+
+    <div class="child-card" onclick="openChildLibrary('Oliver Kim', 24)" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="child-name">Oliver Kim</div>
+        <div style="display:flex;align-items:center;gap:8px;"><div class="activity-dot inactive"></div><span style="font-size:16px;color:var(--ink-light);">→</span></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="pill pill-sage" style="font-size:13px;">24 entries</span>
+        <span style="font-size:13px;color:var(--ink-light);padding:3px 0;">8 words · 3 signs · 3 sounds</span>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <span style="font-size:13px;color:var(--ink-mid);">Last session <strong style="color:var(--ink);">Mar 13</strong></span>
+        <span style="font-size:13px;color:var(--ink-mid);">Next <strong style="color:var(--mint);">Mar 22</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHILD LIBRARY SCREEN -->
+  <div class="screen" id="screen-child-library" style="display:none;">
+    <div style="padding:28px 22px 0;display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+      <button onclick="closeChildLibrary()" style="width:38px;height:38px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-mid);flex-shrink:0;">←</button>
+      <div class="screen-title" style="margin:0;" id="child-library-title">Growth Library</div>
+    </div>
+    <div class="screen-sub" style="padding:0 22px 16px;" id="child-library-sub">Maya's collection</div>
+
+    <div class="word-bank-stats">
+      <div class="stat-card">
+        <div class="stat-num" id="child-library-total">47</div>
+        <div class="stat-label">Total entries</div>
+        <div class="stat-trend">↑ 8 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="child-library-month">19</div>
+        <div class="stat-label">This month</div>
+        <div class="stat-trend">↑ 4 vs last month</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;padding:20px 16px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="font-size:16px;font-weight:700;color:var(--ink);">Growth over time</div>
+        <div style="display:flex;gap:0;background:var(--surface);border-radius:8px;padding:2px;" id="child-chart-range-btns">
+          <button onclick="setChildRange('4w',this)" style="font-size:13px;font-weight:700;padding:5px 12px;border:none;border-radius:6px;cursor:pointer;background:var(--mint);color:white;font-family:var(--font-body);">4W</button>
+          <button onclick="setChildRange('3m',this)" style="font-size:13px;font-weight:700;padding:5px 12px;border:none;border-radius:6px;cursor:pointer;background:transparent;color:var(--ink-light);font-family:var(--font-body);">3M</button>
+          <button onclick="setChildRange('all',this)" style="font-size:13px;font-weight:700;padding:5px 12px;border:none;border-radius:6px;cursor:pointer;background:transparent;color:var(--ink-light);font-family:var(--font-body);">All</button>
+        </div>
+      </div>
+      <canvas id="child-growth-chart" style="width:100%;height:200px;display:block;"></canvas>
+      <div style="position:relative;height:18px;margin-top:4px;" id="child-chart-labels"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:16px;">By type</div>
+      <div class="category-row">
+        <div style="display:flex;align-items:center;gap:8px;width:90px;">
+          <span style="font-size:18px;">🗣️</span>
+          <div class="cat-name" style="width:auto;">Words</div>
+        </div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:75%;background:var(--mint)"></div></div>
+        <div class="cat-count" id="child-words-count">31</div>
+      </div>
+      <div class="category-row">
+        <div style="display:flex;align-items:center;gap:8px;width:90px;">
+          <span style="font-size:18px;">🤟</span>
+          <div class="cat-name" style="width:auto;">Signs</div>
+        </div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:38%;background:var(--violet)"></div></div>
+        <div class="cat-count" id="child-signs-count">10</div>
+      </div>
+      <div class="category-row">
+        <div style="display:flex;align-items:center;gap:8px;width:90px;">
+          <span style="font-size:18px;">🔊</span>
+          <div class="cat-name" style="width:auto;">Sounds</div>
+        </div>
+        <div class="cat-bar-bg"><div class="cat-bar" style="width:23%;background:var(--sky)"></div></div>
+        <div class="cat-count" id="child-sounds-count">6</div>
+      </div>
+    </div>
+    <div class="section-label" style="margin-top:8px;">All entries</div>
+    <div id="child-entry-list" style="padding:0 22px;display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+  </div>
+
+  <!-- THERAPIST SCHEDULE -->
+  <div class="screen" id="screen-t-schedule">
+    <div class="screen-header" style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <div>
+        <div class="screen-title">Schedule</div>
+        <div class="screen-sub">Manage sessions</div>
+      </div>
+      <button onclick="showAddSession()" style="width:40px;height:40px;background:var(--mint);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px;transition:background 0.15s;" title="Add new session">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+
+    <div class="month-nav">
+      <button class="month-arrow">←</button>
+      <div class="month-name">March 2026</div>
+      <button class="month-arrow">→</button>
+    </div>
+
+    <div class="week-strip">
+      <div class="day-pill has-session" onclick="selectDay(this)"><div class="day-name">Mon</div><div class="day-num">16</div></div>
+      <div class="day-pill today selected" onclick="selectDay(this)"><div class="day-name">Mon</div><div class="day-num">17</div></div>
+      <div class="day-pill has-session" onclick="selectDay(this)"><div class="day-name">Tue</div><div class="day-num">18</div></div>
+      <div class="day-pill has-session" onclick="selectDay(this)"><div class="day-name">Wed</div><div class="day-num">19</div></div>
+      <div class="day-pill has-session" onclick="selectDay(this)"><div class="day-name">Thu</div><div class="day-num">20</div></div>
+      <div class="day-pill" onclick="selectDay(this)"><div class="day-name">Fri</div><div class="day-num">21</div></div>
+      <div class="day-pill has-session" onclick="selectDay(this)"><div class="day-name">Mon</div><div class="day-num">24</div></div>
+    </div>
+
+    <div class="section-label">Today's sessions</div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Maya Johnson</div>
+        <div class="session-therapist">Today, Mar 17 · 10:00 AM</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <span class="pill pill-sage" style="font-size:13px;">Confirmed ✓</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;border-radius:var(--radius-sm);font-weight:600;" onclick="showCancelToast()">Reschedule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Sofia Park</div>
+        <div class="session-therapist">Today, Mar 17 · 11:30 AM</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <span class="pill" style="font-size:11px;background:var(--surface2);color:var(--ink-mid);">Pending</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;border-radius:var(--radius-sm);font-weight:600;" onclick="showCancelToast()">Reschedule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Noah Williams</div>
+        <div class="session-therapist">Today, Mar 17 · 1:00 PM</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <span class="pill pill-sage" style="font-size:13px;">Confirmed ✓</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;border-radius:var(--radius-sm);font-weight:600;" onclick="showCancelToast()">Reschedule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Emma Chen</div>
+        <div class="session-therapist">Today, Mar 17 · 2:30 PM</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <span class="pill" style="font-size:11px;background:var(--surface2);color:var(--ink-mid);">Pending</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;border-radius:var(--radius-sm);font-weight:600;" onclick="showCancelToast()">Reschedule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-block">
+      <div class="session-bar"></div>
+      <div class="session-detail">
+        <div class="session-name">Oliver Kim</div>
+        <div class="session-therapist">Today, Mar 17 · 4:00 PM</div>
+        <div style="display:flex;gap:6px;margin-top:10px;">
+          <span class="pill" style="font-size:11px;background:var(--surface2);color:var(--ink-mid);">Pending</span>
+          <button class="btn btn-outline" style="font-size:12px;padding:5px 12px;border-radius:var(--radius-sm);font-weight:600;" onclick="showCancelToast()">Reschedule</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:16px;">Completed today</div>
+
+    <div class="session-block" style="opacity:0.45;">
+      <div class="session-bar" style="background:var(--border);"></div>
+      <div class="session-detail">
+        <div class="session-name" style="color:var(--ink-mid);">Liam Torres</div>
+        <div class="session-therapist">Today, Mar 17 · 9:00 AM</div>
+        <div style="margin-top:4px;"><span class="pill pill-sage" style="font-size:10px;">Done ✓</span></div>
+      </div>
+    </div>
+
+    <div style="height:20px;"></div>
+  </div>
+
+  <!-- THERAPIST MESSAGES -->
+  <div class="screen" id="screen-t-messages" style="padding-bottom:0;">
+    <div class="screen-header" style="padding-bottom:8px;">
+      <div class="screen-title">Messages</div>
+    </div>
+
+    <div style="margin:0 20px 16px;">
+      <input type="text" class="form-input" placeholder="Search conversations..." style="padding:11px 14px;">
+    </div>
+
+    <div class="section-label">Recent</div>
+
+    <div class="child-card" onclick="showThreadView()">
+      <div class="avatar avatar-sage" style="width:46px;height:46px;font-size:15px;border-radius:14px;">MJ</div>
+      <div class="child-info">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="child-name">Maya Johnson</div>
+          <span style="font-size:11px;color:var(--ink-light);">10:02 AM</span>
+        </div>
+        <div class="child-meta">"Amazing!! Spontaneous labeling is huge..."</div>
+      </div>
+      <div class="unread-dot"></div>
+    </div>
+
+    <div class="child-card">
+      <div class="avatar" style="width:46px;height:46px;font-size:15px;border-radius:14px;background:#fef3c7;color:#92400e;">LT</div>
+      <div class="child-info">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="child-name">Liam Torres</div>
+          <span style="font-size:11px;color:var(--ink-light);">Yesterday</span>
+        </div>
+        <div class="child-meta">He tried "truck" 4 times at bedtime!</div>
+      </div>
+    </div>
+
+    <div class="child-card">
+      <div class="avatar" style="width:46px;height:46px;font-size:15px;border-radius:14px;background:var(--lavender-light);color:var(--lavender);">SP</div>
+      <div class="child-info">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="child-name">Sofia Park</div>
+          <span style="font-size:11px;color:var(--ink-light);">Mar 15</span>
+        </div>
+        <div class="child-meta">Quick question about the exercises...</div>
+      </div>
+    </div>
+
+    <div class="child-card">
+      <div class="avatar" style="width:46px;height:46px;font-size:15px;border-radius:14px;background:#fce7f3;color:#9d174d;">NW</div>
+      <div class="child-info">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="child-name">Noah Williams</div>
+          <span style="font-size:11px;color:var(--ink-light);">Mar 13</span>
+        </div>
+        <div class="child-meta">We had a great week with the sounds!</div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- ADD WORD MODAL -->
+  <!-- SETTINGS SCREEN -->
+  <div class="screen" id="screen-settings" style="display:none;">
+    <div style="padding:28px 22px 0;display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+      <button onclick="closeSettings()" style="width:38px;height:38px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-mid);flex-shrink:0;">←</button>
+      <div class="screen-title" style="margin:0;">Settings</div>
+    </div>
+    <div style="height:12px;"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 22px;margin-bottom:12px;">
+      <div class="section-label" style="margin:0;padding:0;">Child profile</div>
+      <span id="edit-profile-btn" style="font-size:14px;font-weight:600;color:var(--mint);cursor:pointer;" onclick="toggleEditProfile()">Edit</span>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <div style="padding-bottom:14px;">
+          <div id="name-view" style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:15px;color:var(--ink-mid);">Name</span>
+            <span style="font-size:15px;font-weight:600;color:var(--ink);">Maya Johnson</span>
+          </div>
+          <div id="name-edit" style="display:none;flex-direction:column;gap:6px;">
+            <label class="form-label">Name</label>
+            <input class="form-input" id="child-name-input" value="Maya Johnson">
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding:14px 0;">
+          <div id="dob-view" style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:15px;color:var(--ink-mid);">Date of birth</span>
+            <span style="font-size:15px;font-weight:600;color:var(--ink);">Jun 12, 2022</span>
+          </div>
+          <div id="dob-edit" style="display:none;flex-direction:column;gap:6px;">
+            <label class="form-label">Date of birth</label>
+            <input class="form-input" id="child-dob-input" type="date" value="2022-06-12">
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:15px;color:var(--ink-mid);">Therapist</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:15px;font-weight:600;color:var(--mint);">Ms. Alexis</span>
+            <span style="font-size:11px;background:var(--surface2);color:var(--ink-light);padding:2px 8px;border-radius:8px;font-weight:600;">Assigned</span>
+          </div>
+        </div>
+
+        <div id="save-profile-btn" style="display:none;flex-direction:row;gap:10px;padding-top:14px;border-top:1px solid var(--border);margin-top:14px;">
+          <button class="btn btn-outline" onclick="toggleEditProfile()" style="flex:1;padding:15px;font-size:15px;border-radius:var(--radius);">Cancel</button>
+          <button class="btn btn-primary" onclick="saveProfile()" style="flex:1;">Save</button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-label">Notifications</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);">Session reminders</div>
+            <div style="font-size:13px;color:var(--ink-mid);margin-top:2px;">24hrs and 1hr before</div>
+          </div>
+          <div class="toggle-wrap on" onclick="toggleSetting(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div style="border-top:1px solid var(--border);"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);">Cancellations</div>
+            <div style="font-size:13px;color:var(--ink-mid);margin-top:2px;">If a session is changed</div>
+          </div>
+          <div class="toggle-wrap on" onclick="toggleSetting(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div style="border-top:1px solid var(--border);"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);">Notes from therapist</div>
+            <div style="font-size:13px;color:var(--ink-mid);margin-top:2px;">When Ms. Alexis leaves a note</div>
+          </div>
+          <div class="toggle-wrap on" onclick="toggleSetting(this)"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Account</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:15px;color:var(--ink-mid);">Email</span>
+          <span style="font-size:15px;font-weight:600;color:var(--ink);">parent@email.com</span>
+        </div>
+        <div style="border-top:1px solid var(--border);"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+          <span style="font-size:15px;color:var(--ink-mid);">Change password</span>
+          <span style="font-size:16px;color:var(--ink-light);">→</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:0 22px 24px;">
+      <button class="btn" style="width:100%;padding:15px;font-size:15px;color:#e05555;background:transparent;border:1.5px solid #f5c5c5;border-radius:var(--radius);cursor:pointer;">Sign out</button>
+    </div>
+  </div>
+
+  <!-- THERAPIST SETTINGS SCREEN -->
+  <div class="screen" id="screen-t-settings" style="display:none;">
+    <div style="padding:28px 22px 0;display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+      <button onclick="closeTherapistSettings()" style="width:38px;height:38px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-mid);flex-shrink:0;">←</button>
+      <div class="screen-title" style="margin:0;">Settings</div>
+    </div>
+    <div style="height:12px;"></div>
+
+    <div class="section-label">Notifications</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);">New word logged</div>
+            <div style="font-size:13px;color:var(--ink-mid);margin-top:2px;">When a parent logs new activity</div>
+          </div>
+          <div class="toggle-wrap on" onclick="toggleSetting(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div style="border-top:1px solid var(--border);"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);">New messages</div>
+            <div style="font-size:13px;color:var(--ink-mid);margin-top:2px;">When a parent sends a message</div>
+          </div>
+          <div class="toggle-wrap on" onclick="toggleSetting(this)"><div class="toggle-knob"></div></div>
+        </div>
+        <div style="border-top:1px solid var(--border);"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--ink);">Session reminders</div>
+            <div style="font-size:13px;color:var(--ink-mid);margin-top:2px;">1hr before each session</div>
+          </div>
+          <div class="toggle-wrap on" onclick="toggleSetting(this)"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Account</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="padding-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:15px;color:var(--ink-mid);">Name</span>
+          <span style="font-size:15px;font-weight:600;color:var(--ink);">Ms. Alexis</span>
+        </div>
+        <div style="border-top:1px solid var(--border);padding:14px 0;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:15px;color:var(--ink-mid);">Email</span>
+          <span style="font-size:15px;font-weight:600;color:var(--ink);">alexis@clinic.com</span>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+          <span style="font-size:15px;color:var(--ink-mid);">Change password</span>
+          <span style="font-size:16px;color:var(--ink-light);">→</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:0 22px 24px;">
+      <button class="btn" style="width:100%;padding:15px;font-size:15px;color:#e05555;background:transparent;border:1.5px solid #f5c5c5;border-radius:var(--radius);cursor:pointer;">Sign out</button>
+    </div>
+  </div>
+
+  <!-- LOG ACTIVITY SCREEN -->
+  <div class="screen" id="screen-log" style="display:none;">
+    <div style="padding:28px 22px 0;display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+      <button onclick="closeModal()" style="width:38px;height:38px;border-radius:50%;background:var(--surface2);border:1.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink-mid);flex-shrink:0;">←</button>
+      <div class="screen-title" style="margin:0;">Log activity</div>
+    </div>
+
+    <div style="height:8px;"></div>
+
+    <div style="padding:0 22px;margin-bottom:16px;">
+      <div class="form-label" style="margin-bottom:10px;">Type</div>
+      <div style="display:flex;gap:10px;">
+        <div class="type-pick selected-type" data-type="word" onclick="selectType(this)" style="flex:1;background:var(--mint-light);border:2px solid var(--mint);border-radius:var(--radius);padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.15s;">
+          <div style="font-size:26px;margin-bottom:4px;">🗣️</div>
+          <div style="font-size:14px;font-weight:700;color:var(--mint-dark);">Word</div>
+        </div>
+        <div class="type-pick" data-type="sign" onclick="selectType(this)" style="flex:1;background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.15s;">
+          <div style="font-size:26px;margin-bottom:4px;">🤟</div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink-mid);">Sign</div>
+        </div>
+        <div class="type-pick" data-type="sound" onclick="selectType(this)" style="flex:1;background:var(--surface2);border:2px solid var(--border);border-radius:var(--radius);padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.15s;">
+          <div style="font-size:26px;margin-bottom:4px;">🔊</div>
+          <div style="font-size:14px;font-weight:700;color:var(--ink-mid);">Sound</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="padding:0 22px;">
+      <label class="form-label" id="entry-label">What did Maya say?</label>
+      <input class="form-input" id="new-word" type="text" placeholder="e.g. apple, mama, more...">
+    </div>
+
+    <div class="form-group" style="padding:0 22px;">
+      <label class="form-label">Context</label>
+      <input class="form-input" id="new-context" type="text" placeholder="What was happening?">
+    </div>
+
+
+    <div style="padding:8px 22px 0;">
+      <button class="btn btn-primary" onclick="saveWord()">Save activity</button>
+      <button class="btn" onclick="closeModal()" style="width:100%;padding:15px;margin-top:10px;text-align:center;font-size:15px;color:var(--ink-mid);background:transparent;border:none;cursor:pointer;">Cancel</button>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV (parent) -->
+<nav class="bottom-nav" id="nav-parent">
+  <div class="nav-item active" onclick="navigate('home', this)">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <div class="nav-label">Home</div>
+  </div>
+  <div class="nav-item" onclick="navigate('words', this)">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+    <div class="nav-label">Activity</div>
+  </div>
+  <div class="nav-item" onclick="navigate('bank', this)">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+    <div class="nav-label">Library</div>
+  </div>
+  <div class="nav-item" onclick="navigate('schedule', this)">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <div class="nav-label">Schedule</div>
+  </div>
+  <div class="nav-item" onclick="navigate('messages', this)">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+    <div class="nav-label">Messages</div>
+  </div>
+</nav>
+
+<!-- BOTTOM NAV (therapist) -->
+<nav class="bottom-nav" id="nav-therapist" style="display:none;">
+  <div class="nav-item active" onclick="navigate('t-home', this, 'therapist')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <div class="nav-label">Home</div>
+  </div>
+  <div class="nav-item" onclick="navigate('t-children', this, 'therapist')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+    <div class="nav-label">Caseload</div>
+  </div>
+  <div class="nav-item" onclick="navigate('t-schedule', this, 'therapist')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <div class="nav-label">Schedule</div>
+  </div>
+  <div class="nav-item" onclick="navigate('t-messages', this, 'therapist')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+    <div class="nav-label">Messages</div>
+  </div>
+</nav>
+
+
+<!-- TOAST -->
+<div id="toast" style="display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:12px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:300;white-space:nowrap;"></div>
+
+<script>
+  let currentRole = 'parent';
+  let currentScreen = 'home';
+
+  function switchRole(role) {
+    currentRole = role;
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.getElementById('nav-parent').style.display = role === 'parent' ? 'flex' : 'none';
+    document.getElementById('nav-therapist').style.display = role === 'therapist' ? 'flex' : 'none';
+
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+
+    if (role === 'therapist') {
+      document.getElementById('screen-t-home').classList.add('active');
+      document.getElementById('fab-btn').style.display = 'none';
+      document.getElementById('settings-btn').style.display = 'flex';
+      document.getElementById('settings-btn').onclick = openSettings;
+      document.getElementById('settings-btn').onclick = openTherapistSettings;
+      currentScreen = 't-home';
+      document.querySelectorAll('#nav-therapist .nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelector('#nav-therapist .nav-item').classList.add('active');
+    } else {
+      document.getElementById('screen-home').classList.add('active');
+      document.getElementById('fab-btn').style.display = 'flex';
+      document.getElementById('settings-btn').style.display = 'flex';
+      document.getElementById('settings-btn').onclick = openSettings;
+      currentScreen = 'home';
+      document.querySelectorAll('#nav-parent .nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelector('#nav-parent .nav-item').classList.add('active');
+    }
+  }
+
+  function navigate(screen, el, role) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + screen).classList.add('active');
+    currentScreen = screen;
+
+    const navId = role === 'therapist' ? '#nav-therapist' : '#nav-parent';
+    document.querySelectorAll(navId + ' .nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+
+    if (screen === 'bank') setTimeout(() => drawChart(currentRange), 50);
+  }
+
+  window.navigate = navigate;
+  window.switchRole = switchRole;
+
+  let prevScreen = 'home';
+
+  function openModal() {
+    prevScreen = currentScreen;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-log').style.display = 'flex';
+    document.getElementById('screen-log').classList.add('active');
+    currentScreen = 'log';
+  }
+  function closeModal() {
+    document.getElementById('screen-log').classList.remove('active');
+    document.getElementById('screen-log').style.display = 'none';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + prevScreen).classList.add('active');
+    currentScreen = prevScreen;
+  }
+  function selectType(el) {
+    document.querySelectorAll('.type-pick').forEach(t => {
+      t.style.background = 'var(--surface2)';
+      t.style.borderColor = 'var(--border)';
+      t.querySelector('div:last-child').style.color = 'var(--ink-mid)';
+    });
+    const type = el.dataset.type;
+    const colors = { word: ['var(--mint-light)','var(--mint)','var(--mint-dark)'], sign: ['var(--violet-light)','var(--violet)','var(--violet)'], sound: ['var(--sky-light)','var(--sky)','#1a5f7a'] };
+    const [bg, border, text] = colors[type];
+    el.style.background = bg;
+    el.style.borderColor = border;
+    el.querySelector('div:last-child').style.color = text;
+    const labels = { word: 'What did Maya say?', sign: 'What sign did Maya use?', sound: 'What sound did Maya make?' };
+    document.getElementById('entry-label').textContent = labels[type];
+  }
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.selectType = selectType;
+
+  function toggleChip(el) {
+    el.parentElement.querySelectorAll('.context-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function saveWord() {
+    const word = document.getElementById('new-word').value.trim();
+    if (!word) { showToast('Please enter a word'); return; }
+    const type = document.querySelector('.context-chip.selected')?.textContent || 'Spontaneous';
+    const context = document.getElementById('new-context').value.trim() || 'No context added';
+
+    const typeLabel = document.querySelector('.type-pick.selected-type')?.dataset.type || 'word';
+    const typeConfigs = {
+      word:  { bg: 'var(--mint-light)',   icon: '🗣️' },
+      sign:  { bg: 'var(--violet-light)', icon: '🤟' },
+      sound: { bg: 'var(--sky-light)',    icon: '🔊' },
+    };
+    const tconf = typeConfigs[typeLabel] || typeConfigs.word;
+
+    const entry = document.createElement('div');
+    entry.className = 'word-entry';
+    entry.innerHTML = `
+      <div class="word-entry-dot" style="background:${tconf.bg};">${tconf.icon}</div>
+      <div>
+        <div class="word-entry-word">${word}</div>
+        <div class="word-entry-context">"${context}"</div>
+        <div class="word-entry-meta">
+          <span class="activity-type ${typeLabel}">${typeLabel}</span>
+          <span>Just now</span>
+        </div>
+      </div>`;
+
+    const wordScreen = document.getElementById('screen-words');
+    const firstSection = wordScreen.querySelector('.section-label');
+    wordScreen.insertBefore(entry, firstSection);
+
+    // Add to home activity list
+    const typeIcon = typeLabel === 'word' ? '🗣️' : typeLabel === 'sign' ? '🤟' : '🔊';
+    const card = document.createElement('div');
+    card.className = 'activity-card';
+    card.style.animationDelay = '0s';
+    card.innerHTML = `
+      <div class="activity-icon act-${typeLabel}">${typeIcon}</div>
+      <div class="activity-body">
+        <div class="activity-title">${word} <span class="activity-type ${typeLabel}">${typeLabel}</span></div>
+        <div class="activity-ctx">${context}</div>
+      </div>
+      <div class="activity-meta">just now<div class="activity-new-dot"></div></div>`;
+    const list = document.getElementById('home-activity-list');
+    list.prepend(card);
+    // Keep max 4 items
+    while (list.children.length > 4) list.removeChild(list.lastChild);
+
+    document.getElementById('new-word').value = '';
+    document.getElementById('new-context').value = '';
+    closeModal();
+    showToast('✓ "' + word + '" logged!');
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const list = document.getElementById('messages-list');
+    const row = document.createElement('div');
+    row.className = 'msg-row sent';
+    row.innerHTML = `<div><div class="msg-bubble sent">${text}<span class="msg-time-inline">Just now</span></div></div>`;
+    list.appendChild(row);
+    list.scrollTop = list.scrollHeight;
+    input.value = '';
+
+    setTimeout(() => {
+      const reply = document.createElement('div');
+      reply.className = 'msg-row';
+      reply.innerHTML = `<div class="avatar avatar-lavender" style="width:28px;height:28px;font-size:11px;border-radius:50%;">A</div><div><div class="msg-bubble received">Thanks for the update! I'll keep this in mind for tomorrow's session 🌟<span class="msg-time-inline">Just now</span></div></div>`;
+      list.appendChild(reply);
+      list.scrollTop = list.scrollHeight;
+    }, 1200);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  function showCancelToast() {
+    showToast('Reschedule request sent to parent');
+  }
+  function showAddSession() {
+    showToast('Session creation coming soon');
+  }
+  function showThreadView() {
+    navigate('t-messages', document.querySelector('#nav-therapist .nav-item:last-child'), 'therapist');
+    showToast('Opening Maya\'s thread...');
+  }
+
+  function selectDay(el) {
+    el.closest('.week-strip').querySelectorAll('.day-pill').forEach(d => d.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  document.getElementById('msg-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+
+
+  // ── GROWTH CHART ──
+  const chartData = {
+    '4w': {
+      labels: ['Feb 17','Mar 1','Mar 8','Mar 15','Mar 17'],
+      values: [22, 31, 37, 43, 47],
+      ticks: ['Feb 17','Mar 1','Mar 8','Mar 15','Today']
+    },
+    '3m': {
+      labels: ['Jan 1','Feb 1','Feb 15','Mar 1','Mar 17'],
+      values: [5, 16, 26, 35, 47],
+      ticks: ['Jan 1','Feb 1','Feb 15','Mar 1','Today']
+    },
+    'all': {
+      labels: ['Dec 1','Jan 1','Feb 1','Mar 1','Mar 17'],
+      values: [0, 5, 16, 35, 47],
+      ticks: ['Dec','Jan','Feb','Mar','Today']
+    }
+  };
+
+  let currentRange = '4w';
+
+  function drawChart(range) {
+    const canvas = document.getElementById('growth-chart');
+    const data = chartData[range];
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width || canvas.parentElement.clientWidth - 32;
+    const H = 200;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    const padL = 44, padR = 12, padT = 24, padB = 20;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    const maxVal = 52;
+    const vals = data.values;
+    const n = vals.length;
+
+    // grid lines
+    const gridLines = [0, 15, 30, 45];
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+    const textColor = isDark ? 'rgba(255,255,255,0.35)' : '#9a9a9a';
+
+    ctx.font = '14px DM Sans, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = textColor;
+    gridLines.forEach(g => {
+      const y = padT + chartH - (g / maxVal) * chartH;
+      ctx.beginPath();
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.moveTo(padL, y);
+      ctx.lineTo(W - padR, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      if (g > 0) ctx.fillText(g, padL - 4, y + 3);
+    });
+
+    // compute points
+    const pts = vals.map((v, i) => ({
+      x: padL + (i / (n - 1)) * chartW,
+      y: padT + chartH - (v / maxVal) * chartH
+    }));
+
+    // gradient fill
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    grad.addColorStop(0, 'rgba(61,186,140,0.22)');
+    grad.addColorStop(1, 'rgba(61,186,140,0)');
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, padT + chartH);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[n-1].x, padT + chartH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // smooth line
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < n; i++) {
+      const cpx = (pts[i-1].x + pts[i].x) / 2;
+      ctx.bezierCurveTo(cpx, pts[i-1].y, cpx, pts[i].y, pts[i].x, pts[i].y);
+    }
+    ctx.strokeStyle = '#3dba8c';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.setLineDash([]);
+    ctx.stroke();
+
+    // dots
+    pts.forEach((p, i) => {
+      const isLast = i === n - 1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, isLast ? 5 : 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#3dba8c';
+      ctx.fill();
+      if (isLast) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // value label above last dot
+        ctx.font = 'bold 14px DM Sans, sans-serif';
+        ctx.fillStyle = '#3dba8c';
+        ctx.textAlign = 'center';
+        ctx.fillText(vals[i], p.x, p.y - 10);
+      }
+    });
+
+    // x-axis labels
+    const labelsEl = document.getElementById('chart-labels');
+    labelsEl.innerHTML = data.ticks.map((t, i) => {
+      const x = padL + (i / (n - 1)) * chartW;
+      const pct = (x / W * 100).toFixed(1);
+      return `<span style="position:absolute;left:${pct}%;transform:translateX(-50%);font-size:10px;color:${textColor};font-family:var(--font-body);white-space:nowrap;">${t}</span>`;
+    }).join('');
+    labelsEl.style.position = 'relative';
+    labelsEl.style.height = '18px';
+  }
+
+  function setRange(range, btn) {
+    currentRange = range;
+    document.querySelectorAll('#chart-range-btns button').forEach(b => {
+      b.style.background = 'transparent';
+      b.style.color = 'var(--ink-light)';
+    });
+    btn.style.background = 'var(--mint)';
+    btn.style.color = 'white';
+    drawChart(range);
+  }
+
+  // Chart redraws when growth library is visited
+
+  window.addEventListener('resize', () => {
+    if (currentRange) drawChart(currentRange);
+  });
+
+  // Expose all onclick-called functions to global scope
+  window.navigate = navigate;
+  window.switchRole = switchRole;
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.toggleChip = toggleChip;
+  window.saveWord = saveWord;
+  window.sendMessage = sendMessage;
+  window.showCancelToast = showCancelToast;
+  window.showAddSession = showAddSession;
+  window.showThreadView = showThreadView;
+  window.selectDay = selectDay;
+  window.setRange = setRange;
+
+  function confirmSession(id, dateStr) {
+    const block = document.getElementById(id);
+    if (!block) return;
+    const confirmBtn = document.getElementById(id + '-confirm');
+    const cancelBtn = document.getElementById(id + '-cancel');
+    if (confirmBtn) {
+      confirmBtn.textContent = 'Confirmed ✓';
+      confirmBtn.style.background = 'var(--mint-light)';
+      confirmBtn.style.color = 'var(--mint-dark)';
+      confirmBtn.style.borderColor = 'var(--mint)';
+      confirmBtn.disabled = true;
+      confirmBtn.style.cursor = 'default';
+    }
+    showToast('Session confirmed · Ms. Alexis notified');
+  }
+  window.confirmSession = confirmSession;
+
+  function cancelSession(id, dateStr) {
+    if (!confirm('Cancel the session on ' + dateStr + '? Ms. Alexis will be notified.')) return;
+    const block = document.getElementById(id);
+    if (!block) return;
+    block.style.opacity = '0.45';
+    block.querySelector('.session-bar').style.background = 'var(--border)';
+    block.querySelector('.session-date-row').style.color = 'var(--ink-mid)';
+    block.querySelector('.session-time-row').style.color = 'var(--ink-light)';
+    const btn = block.querySelector('button');
+    if (btn) btn.remove();
+    const therapistRow = block.querySelector('.session-therapist');
+    if (therapistRow) {
+      const pill = document.createElement('span');
+      pill.className = 'pill pill-warm';
+      pill.style.fontSize = '10px';
+      pill.textContent = 'Cancelled';
+      therapistRow.appendChild(pill);
+    }
+    showToast('Session cancelled · Ms. Alexis notified');
+  }
+  window.cancelSession = cancelSession;
+  let prevSettingsScreen = 'home';
+  function openSettings() {
+    prevSettingsScreen = currentScreen;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-settings').style.display = 'flex';
+    document.getElementById('screen-settings').classList.add('active');
+    currentScreen = 'settings';
+  }
+  function closeSettings() {
+    document.getElementById('screen-settings').classList.remove('active');
+    document.getElementById('screen-settings').style.display = 'none';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + prevSettingsScreen).classList.add('active');
+    currentScreen = prevSettingsScreen;
+  }
+  function toggleSetting(el) { el.classList.toggle('on'); }
+  let prevTherapistScreen = 't-home';
+  function openTherapistSettings() {
+    prevTherapistScreen = currentScreen;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-t-settings').style.display = 'flex';
+    document.getElementById('screen-t-settings').classList.add('active');
+    currentScreen = 't-settings';
+  }
+  function closeTherapistSettings() {
+    document.getElementById('screen-t-settings').classList.remove('active');
+    document.getElementById('screen-t-settings').style.display = 'none';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + prevTherapistScreen).classList.add('active');
+    currentScreen = prevTherapistScreen;
+  }
+  window.openTherapistSettings = openTherapistSettings;
+  window.closeTherapistSettings = closeTherapistSettings;
+
+  let prevChildScreen = 't-children';
+  let childChartRange = '4w';
+
+  const childLibraryData = {"Maya Johnson": {"words": ["apple", "more", "mama", "dada", "ball", "dog", "up", "bye", "hi", "no", "go", "milk", "juice", "book"], "signs": ["more", "eat", "all done", "help", "please"], "sounds": ["/b/", "/m/", "/d/"]}, "Liam Torres": {"words": ["truck", "car", "go", "mama", "dada", "up", "no", "hi", "ball", "dog"], "signs": ["more", "eat", "help"], "sounds": ["/r/", "/t/", "/g/"]}, "Sofia Park": {"words": ["water", "more", "mama", "dada", "eat", "ball", "dog", "cat", "book", "baby", "shoe", "hat", "cup", "spoon", "bath"], "signs": ["more", "eat", "all done", "help", "please", "thank you", "water"], "sounds": ["/s/", "/f/", "/sh/", "/ch/"]}, "Noah Williams": {"words": ["mama", "dada", "ball", "up", "no", "hi"], "signs": ["more", "eat"], "sounds": ["/b/", "/m/"]}, "Emma Chen": {"words": ["water", "more", "mama", "dada", "eat", "ball", "dog", "cat", "book", "baby", "shoe", "cup"], "signs": ["more", "eat", "all done", "help", "please", "thank you"], "sounds": ["/s/", "/f/", "/sh/"]}, "Oliver Kim": {"words": ["mama", "dada", "ball", "up", "no", "hi", "dog", "go"], "signs": ["more", "eat", "help"], "sounds": ["/b/", "/m/", "/d/"]}};
+
+  function openChildLibrary(name, total) {
+    prevChildScreen = currentScreen;
+    document.getElementById('child-library-title').textContent = name.split(' ')[0] + "'s Library";
+    document.getElementById('child-library-sub').textContent = name + "'s growing collection";
+    document.getElementById('child-library-total').textContent = total;
+    document.getElementById('child-library-month').textContent = Math.round(total * 0.4);
+    document.getElementById('child-words-count').textContent = Math.round(total * 0.65);
+    document.getElementById('child-signs-count').textContent = Math.round(total * 0.22);
+    document.getElementById('child-sounds-count').textContent = Math.round(total * 0.13);
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-child-library').style.display = 'flex';
+    document.getElementById('screen-child-library').classList.add('active');
+    currentScreen = 'child-library';
+    setTimeout(() => drawChildChart(childChartRange, total), 50);
+
+    // Populate entry list
+    const data = childLibraryData[name] || { words: [], signs: [], sounds: [] };
+    const list = document.getElementById('child-entry-list');
+    list.innerHTML = '';
+    const typeConfig = {
+      words:  { icon: '🗣️', cls: 'act-word',  pill: 'word',  label: 'word' },
+      signs:  { icon: '🤟', cls: 'act-sign',  pill: 'sign',  label: 'sign' },
+      sounds: { icon: '🔊', cls: 'act-sound', pill: 'sound', label: 'sound' },
+    };
+    ['words', 'signs', 'sounds'].forEach(type => {
+      data[type].forEach(entry => {
+        const tc = typeConfig[type];
+        const card = document.createElement('div');
+        card.className = 'activity-card';
+        card.innerHTML = `<div class="activity-icon ${tc.cls}">${tc.icon}</div>
+          <div class="activity-body">
+            <div class="activity-title">${entry} <span class="activity-type ${tc.pill}">${tc.label}</span></div>
+          </div>`;
+        list.appendChild(card);
+      });
+    });
+  }
+  function closeChildLibrary() {
+    document.getElementById('screen-child-library').classList.remove('active');
+    document.getElementById('screen-child-library').style.display = 'none';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + prevChildScreen).classList.add('active');
+    currentScreen = prevChildScreen;
+  }
+  function setChildRange(range, btn) {
+    childChartRange = range;
+    document.querySelectorAll('#child-chart-range-btns button').forEach(b => {
+      b.style.background = 'transparent'; b.style.color = 'var(--ink-light)';
+    });
+    btn.style.background = 'var(--mint)'; btn.style.color = 'white';
+    const total = parseInt(document.getElementById('child-library-total').textContent);
+    drawChildChart(range, total);
+  }
+  function drawChildChart(range, total) {
+    const canvas = document.getElementById('child-growth-chart');
+    const labelsEl = document.getElementById('child-chart-labels');
+    const factor = total / 47;
+    const data = {
+      '4w': { values: [Math.round(22*factor), Math.round(31*factor), Math.round(37*factor), Math.round(43*factor), total], ticks: ['Feb 17','Mar 1','Mar 8','Mar 15','Today'] },
+      '3m': { values: [Math.round(5*factor), Math.round(16*factor), Math.round(26*factor), Math.round(35*factor), total], ticks: ['Jan 1','Feb 1','Feb 15','Mar 1','Today'] },
+      'all': { values: [0, Math.round(5*factor), Math.round(16*factor), Math.round(35*factor), total], ticks: ['Dec','Jan','Feb','Mar','Today'] },
+    };
+    const d = data[range];
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const W = rect.width || canvas.parentElement.clientWidth - 32;
+    const H = 200;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+    const padL = 44, padR = 12, padT = 24, padB = 20;
+    const chartW = W - padL - padR, chartH = H - padT - padB;
+    const maxVal = Math.ceil(total * 1.1 / 10) * 10;
+    const gridLines = [0, Math.round(maxVal/3), Math.round(maxVal*2/3), maxVal];
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const textColor = isDark ? 'rgba(255,255,255,0.35)' : '#9a9a9a';
+    ctx.font = '14px DM Sans, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = textColor;
+    gridLines.forEach(g => {
+      const y = padT + chartH - (g / maxVal) * chartH;
+      ctx.beginPath(); ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+      ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+      ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      ctx.setLineDash([]);
+      if (g > 0) ctx.fillText(g, padL - 4, y + 3);
+    });
+    const n = d.values.length;
+    const pts = d.values.map((v, i) => ({ x: padL + (i / (n-1)) * chartW, y: padT + chartH - (v / maxVal) * chartH }));
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+    grad.addColorStop(0, 'rgba(61,186,140,0.22)'); grad.addColorStop(1, 'rgba(61,186,140,0)');
+    ctx.beginPath(); ctx.moveTo(pts[0].x, padT + chartH);
+    pts.forEach(p => ctx.lineTo(p.x, p.y));
+    ctx.lineTo(pts[n-1].x, padT + chartH); ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < n; i++) { const cpx = (pts[i-1].x + pts[i].x) / 2; ctx.bezierCurveTo(cpx, pts[i-1].y, cpx, pts[i].y, pts[i].x, pts[i].y); }
+    ctx.strokeStyle = '#3dba8c'; ctx.lineWidth = 2.5; ctx.setLineDash([]); ctx.stroke();
+    pts.forEach((p, i) => {
+      const isLast = i === n - 1;
+      ctx.beginPath(); ctx.arc(p.x, p.y, isLast ? 5 : 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#3dba8c'; ctx.fill();
+      if (isLast) { ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke(); ctx.font = 'bold 14px DM Sans, sans-serif'; ctx.fillStyle = '#3dba8c'; ctx.textAlign = 'center'; ctx.fillText(d.values[i], p.x, p.y - 10); }
+    });
+    labelsEl.innerHTML = d.ticks.map((t, i) => { const x = padL + (i / (n-1)) * chartW; return `<span style="position:absolute;left:${(x/W*100).toFixed(1)}%;transform:translateX(-50%);font-size:14px;font-weight:500;color:${textColor};font-family:var(--font-body);white-space:nowrap;">${t}</span>`; }).join('');
+  }
+  window.openChildLibrary = openChildLibrary;
+  window.closeChildLibrary = closeChildLibrary;
+  window.setChildRange = setChildRange;
+
+  window.openSettings = openSettings;
+  window.closeSettings = closeSettings;
+  window.toggleSetting = toggleSetting;
+
+  function toggleEditProfile() {
+    const editing = document.getElementById('name-edit').style.display === 'flex';
+    if (editing) {
+      // Cancel
+      document.getElementById('name-edit').style.display = 'none';
+      document.getElementById('dob-edit').style.display = 'none';
+      document.getElementById('name-view').style.display = 'flex';
+      document.getElementById('dob-view').style.display = 'flex';
+      document.getElementById('save-profile-btn').style.display = 'none';
+      document.getElementById('edit-profile-btn').style.display = 'inline';
+    } else {
+      // Enter edit mode
+      document.getElementById('name-edit').style.display = 'flex';
+      document.getElementById('dob-edit').style.display = 'flex';
+      document.getElementById('name-view').style.display = 'none';
+      document.getElementById('dob-view').style.display = 'none';
+      document.getElementById('save-profile-btn').style.display = 'flex';
+      document.getElementById('edit-profile-btn').style.display = 'none';
+    }
+  }
+  function saveProfile() {
+    const name = document.getElementById('child-name-input').value.trim() || 'Maya Johnson';
+    const dob = document.getElementById('child-dob-input').value;
+    const dobFormatted = dob ? new Date(dob + 'T00:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : 'Jun 12, 2022';
+    document.getElementById('name-view').querySelector('span:last-child').textContent = name;
+    document.getElementById('dob-view').querySelector('span:last-child').textContent = dobFormatted;
+    toggleEditProfile();
+    showToast('Profile updated ✓');
+  }
+  window.toggleEditProfile = toggleEditProfile;
+  window.saveProfile = saveProfile;
+</script>
+
+</body>
+</html>
